@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -27,6 +28,21 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="ResearchX", lifespan=lifespan)
+
+# ---------------------------------------------------------------------------
+# CORS — allow the frontend origin configured via FRONTEND_ORIGIN env var.
+# In local dev the Vite proxy handles requests so CORS isn't needed, but once
+# the frontend is hosted separately (e.g. Vercel / Netlify / S3) set:
+#   FRONTEND_ORIGIN=https://your-frontend.example.com
+# ---------------------------------------------------------------------------
+_origins = [o.strip() for o in config.FRONTEND_ORIGIN.split(",") if o.strip()]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_origins or ["*"],   # "*" only when no origin configured
+    allow_credentials=bool(_origins),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/api/health")

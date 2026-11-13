@@ -18,6 +18,8 @@ def env(name: str, default: str = "") -> str:
     return os.getenv(name, default).strip()
 
 
+FRONTEND_ORIGIN = env("FRONTEND_ORIGIN")   # e.g. https://your-app.vercel.app
+
 GROQ_API_KEY = env("GROQ_API_KEY")
 GEMINI_API_KEY = env("GEMINI_API_KEY")
 OPENROUTER_API_KEY = env("OPENROUTER_API_KEY")
