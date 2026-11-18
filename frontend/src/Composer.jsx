@@ -1,5 +1,6 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "./api.js";
+import { fmt, kfmt } from "./ui.jsx";
 
 const EXAMPLES = [
   "What are the most promising approaches to grid-scale energy storage, and how do their costs compare?",
@@ -14,7 +15,9 @@ const DEPTHS = [
   { id: "deep", label: "Deep", hint: "6 sub-questions" },
 ];
 
-export default function Composer({ onCreated, health }) {
+export default function Composer({ onCreated, health, me }) {
+  const [est, setEst] = useState(null);
+  useEffect(() => { api.estimates().then(setEst).catch(() => {}); }, []);
   const [question, setQuestion] = useState("");
   const [depth, setDepth] = useState("standard");
   const [revisions, setRevisions] = useState(2);
@@ -24,7 +27,12 @@ export default function Composer({ onCreated, health }) {
   const [drag, setDrag] = useState(false);
   const inputRef = useRef();
 
-  const addFiles = (list) => setFiles((f) => [...f, ...Array.from(list)]);
+  const uploadsAllowed = est ? est.uploads_allowed : true;
+  const allowed = est?.allowed_depths || DEPTHS.map((d) => d.id);
+  const addFiles = (list) => uploadsAllowed && setFiles((f) => [...f, ...Array.from(list)]);
+  const estimate = est?.tokens?.[depth] ? Math.round(est.tokens[depth] * (1 + 0.35 * Math.max(0, revisions - 1))) : null;
+  const left = me?.tokens_left;
+  const short = left != null && estimate != null && left < estimate;
 
   const submit = async (e) => {
     e?.preventDefault();
@@ -50,10 +58,11 @@ export default function Composer({ onCreated, health }) {
   return (
     <div className="composer-wrap">
       <div className="hero">
-        <h1>What do you want to research?</h1>
-        <p className="muted">
+        <span className="eyebrow">New entry for the vault</span>
+        <h1>What shall we <em>investigate</em>?</h1>
+        <p>
           A team of agents plans the question, searches the web, analyzes your data, writes a cited report,
-          critiques it, and revises it until it passes review.
+          critiques it, revises it until it passes review — then grades the whole run.
         </p>
       </div>
 
@@ -68,8 +77,8 @@ export default function Composer({ onCreated, health }) {
         />
 
         <div
-          className={`drop ${drag ? "drag" : ""}`}
-          onClick={() => inputRef.current.click()}
+          className={`drop ${drag ? "drag" : ""} ${uploadsAllowed ? "" : "disabled"}`}
+          onClick={() => uploadsAllowed && inputRef.current.click()}
           onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
           onDragLeave={() => setDrag(false)}
           onDrop={(e) => { e.preventDefault(); setDrag(false); addFiles(e.dataTransfer.files); }}
@@ -77,7 +86,11 @@ export default function Composer({ onCreated, health }) {
           <input ref={inputRef} type="file" multiple hidden accept=".csv,.tsv,.xlsx,.xls,.json,.pdf,.txt,.md"
                  onChange={(e) => addFiles(e.target.files)} />
           {files.length === 0 ? (
-            <span className="muted small">Optional: drop datasets (CSV, XLSX, JSON) for analysis or documents (PDF, TXT, MD) for RAG</span>
+            <span className="muted small">
+              {uploadsAllowed
+                ? "Optional: drop datasets (CSV, XLSX, JSON) for analysis or documents (PDF, TXT, MD) for RAG"
+                : "File uploads are reserved for full accounts"}
+            </span>
           ) : (
             <div className="chips">
               {files.map((f, i) => (
@@ -92,7 +105,8 @@ export default function Composer({ onCreated, health }) {
         <div className="composer-row">
           <div className="seg">
             {DEPTHS.map((d) => (
-              <button type="button" key={d.id} className={depth === d.id ? "on" : ""} onClick={() => setDepth(d.id)} title={d.hint}>
+              <button type="button" key={d.id} className={depth === d.id ? "on" : ""} onClick={() => setDepth(d.id)}
+                      disabled={!allowed.includes(d.id)} title={allowed.includes(d.id) ? d.hint : "Not available on a guest pass"}>
                 {d.label}
               </button>
             ))}
@@ -106,6 +120,11 @@ export default function Composer({ onCreated, health }) {
             {busy ? "Starting…" : "Start research ⌘↵"}
           </button>
         </div>
+        <div className="estimate">
+          <span>Estimated cost <b>~{kfmt(estimate)}</b> tokens{est && " (average of past runs at this depth)"}</span>
+          <span>Your balance <b className={short ? "bad-text" : ""}>{fmt(left)}</b></span>
+        </div>
+        {short && <div className="error">This may run out of tokens partway — the run will pause and can be resumed after a top-up.</div>}
         {error && <div className="error">{error}</div>}
         {noKeys && <div className="error">Configure at least one free LLM API key in backend/.env, then restart the backend.</div>}
       </form>
