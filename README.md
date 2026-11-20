@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔬 ResearchX
+#  ResearchX
 
 **A local, full-stack autonomous research platform powered by LangChain + LangGraph.**  
 Runs entirely on **free LLM APIs** — plans, searches, retrieves, analyzes, writes, critiques, and revises until the report passes peer review.
@@ -22,7 +22,7 @@ Runs entirely on **free LLM APIs** — plans, searches, retrieves, analyzes, wri
 
 ---
 
-## ✨ What it does
+##  What it does
 
 You ask a research question. ResearchX does the rest — autonomously.
 
@@ -56,7 +56,7 @@ You ask a research question. ResearchX does the rest — autonomously.
 
 ---
 
-## 🚀 Quick start
+##  Quick start
 
 ```bash
 # 1. Clone
@@ -89,7 +89,7 @@ cd ../backend && .venv/bin/uvicorn app.main:app
 
 ---
 
-## 🖥️ UI pages
+##  UI pages
 
 | Page | Description |
 |---|---|
@@ -102,7 +102,7 @@ cd ../backend && .venv/bin/uvicorn app.main:app
 
 ---
 
-## ⚙️ How it works
+##  How it works
 
 ### Orchestration
 LangGraph `StateGraph` with a cyclic **critique → revise** loop, conditional routing, and an `AsyncSqliteSaver` checkpointer (`data/checkpoints.db`).  
@@ -133,7 +133,7 @@ If the draft fails, the reviser researches the gaps and rewrites. The loop runs 
 
 ---
 
-## 🔐 Configuration (`backend/.env`)
+##  Configuration (`backend/.env`)
 
 Copy `backend/.env.example` → `backend/.env` and fill in your keys.
 
@@ -211,7 +211,7 @@ Research_X/
 
 ---
 
-## 🔄 CI — Frontend build check
+##  CI — Frontend build check
 
 Every push or pull request to `main` / `dev` that touches `frontend/` automatically triggers the **Frontend Build** workflow.
 
@@ -228,13 +228,13 @@ Every push or pull request to `main` / `dev` that touches `frontend/` automatica
 
 ---
 
-## 🛡️ Security note
+##  Security note
 
-> ⚠️ The analysis step runs **LLM-generated Python** on your machine. A simple filter blocks obvious dangerous calls, but this is **not** a security sandbox. Only use it locally with data you trust.
+>  The analysis step runs **LLM-generated Python** on your machine. A simple filter blocks obvious dangerous calls, but this is **not** a security sandbox. Only use it locally with data you trust.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Pull requests are welcome. For major changes please open an issue first to discuss what you'd like to change.
 
